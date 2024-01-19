@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const FileList = ({ token }) => {
+const FileList = ({ token, onDeleteSuccess }) => {
   const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
 
@@ -52,8 +52,9 @@ const FileList = ({ token }) => {
   const handleDelete = async (fileId) => {
     try {
       await axios.delete(`http://localhost:3000/api/files/delete/${fileId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 'Authorization': `Bearer ${token}` },
       });
+      onDeleteSuccess(fileId);
       // Update UI: Remove deleted file from state or re-fetch file list
     } catch (error) {
       console.error("Error deleting file", error);

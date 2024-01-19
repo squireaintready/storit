@@ -8,6 +8,7 @@ import FileList from "./components/FileList";
 
 const App = () => {
   const [token, setToken] = useState(null);
+  const [files, setFiles] = useState([]);
 
   const handleLoginSuccess = (token) => {
     setToken(token);
@@ -15,6 +16,9 @@ const App = () => {
     localStorage.setItem('token', token);
 };
 
+const handleDeleteSuccess = (fileId) => {
+  // setFiles(files.filter(file => file._id !== fileId));
+};
 
   return (
     <div>
@@ -28,7 +32,8 @@ const App = () => {
         <div>
           <h1>Welcome</h1>
           <FileUpload token={token} />
-          <FileList token={token} />
+          <FileList token={token} onDeleteSuccess={handleDeleteSuccess} />
+          {/* <FileList token={token} /> */}
         </div>
       )}
     </div>

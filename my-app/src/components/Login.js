@@ -8,7 +8,6 @@ const Login = ({ onLoginSuccess }) => {
     const [error, setError] = useState('');
 
     const handleLogin = async () => {
-      console.log(username, password)
         try {
             const response = await axios.post('http://localhost:3000/api/users/login', {
                 username,
