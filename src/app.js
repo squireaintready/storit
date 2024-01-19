@@ -1,11 +1,22 @@
 // src/app.js
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-require('dotenv').config();
 const userRoutes = require('./routes/users');
 const fileRoutes = require('./routes/files');
+const cors = require('cors');
 
 const app = express();
+
+// If your frontend is on a different port, use it here
+const frontendUrl = 'http://localhost:3001'; 
+
+// CORS configuration
+app.use(cors({
+    origin: frontendUrl,
+    methods: ['GET', 'POST', 'DELETE', 'UPDATE', 'PUT', 'PATCH']
+}));
+
 app.use(express.json());
 // Middleware to parse JSON
 // app.use(express.json());
