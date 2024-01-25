@@ -30,8 +30,8 @@ const handleDeleteSuccess = (fileId) => {
       ) : (
         // User is logged in, show other components
         <div>
-          <h1>Welcome</h1>
           <FileUpload token={token} />
+          <hr/>
           <FileList token={token} onDeleteSuccess={handleDeleteSuccess} />
           {/* <FileList token={token} /> */}
         </div>
