@@ -21,7 +21,7 @@ const FileList = ({ token, onDeleteSuccess }) => {
     };
 
     fetchFiles();
-  }, [token]);
+  }, [token, files]);
 
   const handleDownload = async (file) => {
     try {
@@ -67,6 +67,7 @@ const FileList = ({ token, onDeleteSuccess }) => {
       {files.map((file) => (
         <li key={file._id}>
           {file.filename}
+          {/* {console.log(file)} */}
           <button onClick={() => handleDownload(file)}>Download</button>
           <button onClick={() => handleDelete(file._id)}>Delete</button>
         </li>
