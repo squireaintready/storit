@@ -66,16 +66,21 @@ router.get("/download/:id", authenticate, async (req, res) => {
 });
 
 // Endpoint to delete a file
-router.delete("/:id", authenticate, async (req, res) => {
+router.delete("/delete/:id", authenticate, async (req, res) => {
   try {
     const file = await File.findById(req.params.id);
-    if (!file || file.userId.toString() !== req.user._id.toString()) {
-      return res.status(404).send("File not found.");
-    }
-
-    // Delete file from the filesystem or cloud storage
-    fs.unlinkSync(path.resolve(file.path));
-
+    if (!file) return res.status(404).send("File not found.");
+    // if (!file || file.userId.toString() !== req.user._id.toString()) {
+    //   return res.status(404).send("File not found.");
+    // }
+    // fs.unlinkSync(path.resolve(file.path));
+    // fs.unlinkSync(file.path);
+    const filePath = file.path; // The path where the file is stored
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        throw err;
+      }
+    });
     // await file.remove();
     await File.deleteOne({ _id: file._id });
     res.send("File deleted.");
@@ -86,3 +91,29 @@ router.delete("/:id", authenticate, async (req, res) => {
 });
 
 module.exports = router;
+
+
+// router.post(
+//   "/upload",
+//   authenticate,
+//   upload.single("file"),
+//   async (req, res) => {
+//     try {
+//       if (!req.user) return res.status(401).send("User not authenticated");
+//       if (!req.file) return res.status(400).send("No file uploaded.");
+//       const newFile = new File({
+//         path: req.file.path,
+//         size: req.file.size,
+//         mimeType: req.file.mimetype,
+//         filename: req.body.customFilename || req.file.filename,
+//         userId: req.user._id,
+//       });
+//       console.log(req.user);
+//       await newFile.save();
+//       res.send("File uploaded and saved to database successfully");
+//     } catch (error) {
+//       console.error("Error in file upload:", error);
+//       res.status(500).send("Error uploading the file");
+//     }
+//   }
+// );
