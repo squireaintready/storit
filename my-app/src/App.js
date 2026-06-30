@@ -1,43 +1,41 @@
-// src/App.js
-import React, { useState } from "react";
-import Login from "./components/Login";
-import Registration from "./components/Registration";
+import { useState } from "react";
+import "./App.css";
+import Auth from "./components/Auth";
 import FileUpload from "./components/FileUpload";
 import FileList from "./components/FileList";
-// import other components
+import { currentUser, logout } from "./lib/store";
 
-const App = () => {
-  const [token, setToken] = useState(null);
-  const [files, setFiles] = useState([]);
+export default function App() {
+  const [user, setUser] = useState(currentUser());
+  const [refresh, setRefresh] = useState(0);
 
-  const handleLoginSuccess = (token) => {
-    setToken(token);
-    // You can also store the token in localStorage for session persistence
-    localStorage.setItem('token', token);
-};
-
-const handleDeleteSuccess = (fileId) => {
-  // setFiles(files.filter(file => file._id !== fileId));
-};
+  if (!user) return <Auth onAuth={setUser} />;
 
   return (
-    <div>
-      {!token ? (
-        <>
-          <Login onLoginSuccess={handleLoginSuccess} />
-          <Registration />
-        </>
-      ) : (
-        // User is logged in, show other components
-        <div>
-          <FileUpload token={token} />
-          <hr/>
-          <FileList token={token} onDeleteSuccess={handleDeleteSuccess} />
-          {/* <FileList token={token} /> */}
+    <div className="app">
+      <header className="topbar">
+        <div className="brand">
+          <span className="brand__mark" aria-hidden="true" />
+          storit
         </div>
-      )}
+        <div className="topbar__right">
+          <span className="who">{user}</span>
+          <button
+            className="btn btn--ghost"
+            onClick={() => {
+              logout();
+              setUser(null);
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <main className="container">
+        <FileUpload owner={user} onUploaded={() => setRefresh((n) => n + 1)} />
+        <FileList owner={user} refreshKey={refresh} />
+      </main>
     </div>
   );
-};
-
-export default App;
+}

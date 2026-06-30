@@ -1,55 +1,85 @@
-// src/components/FileUpload.js
-import React, { useState } from "react";
-import axios from "axios";
+import { useRef, useState } from "react";
+import { saveFile, formatSize } from "../lib/store";
 
-const FileUpload = ({ token }) => {
+export default function FileUpload({ owner, onUploaded }) {
   const [file, setFile] = useState(null);
-  const [customFilename, setCustomFilename] = useState("");
-  const [error, setError] = useState("");
-  const [uploadStatus, setUploadStatus] = useState(false);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const inputRef = useRef(null);
 
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-    setCustomFilename(e.target.files[0].name.split(".").slice(0, -1).join("."));
+  const pick = (chosen) => {
+    if (!chosen) return;
+    setFile(chosen);
+    setName(chosen.name.replace(/\.[^.]+$/, ""));
   };
 
-  const handleFilenameChange = (e) => {
-    setCustomFilename(e.target.value);
+  const upload = async () => {
+    if (!file) return;
+    setBusy(true);
+    const ext = file.name.includes(".") ? `.${file.name.split(".").pop()}` : "";
+    const base = name.trim() || file.name.replace(/\.[^.]+$/, "");
+    await saveFile({
+      id: crypto.randomUUID(),
+      owner,
+      name: base + ext,
+      type: file.type || "application/octet-stream",
+      size: file.size,
+      blob: file,
+      uploadedAt: Date.now(),
+    });
+    setFile(null);
+    setName("");
+    setBusy(false);
+    if (inputRef.current) inputRef.current.value = "";
+    onUploaded();
   };
-  const handleUpload = async () => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('customFilename', customFilename);
-
-    try {
-        const response = await axios.post('http://localhost:3000/api/files/upload', formData, {
-            headers: {
-              'Authorization': `Bearer ${token}`,  
-              'Content-Type': 'multipart/form-data'
-            }
-        });
-        setUploadStatus('File uploaded successfully');
-    } catch (error) {
-        console.error('Error uploading file:', error);
-        setUploadStatus('Error uploading file');
-    }
-};
 
   return (
-    <div>
-      <h2>Upload File</h2>
-      <input type="file" onChange={handleFileChange} />
-      <input
-        type="text"
-        value={customFilename}
-        onChange={handleFilenameChange}
-        placeholder="Enter new filename"
-      />
-      <button onClick={handleUpload}>Upload</button>
-      {!setUploadStatus && <p>File uploaded successfully!</p>}
-      {error && <p>{error}</p>}
-    </div>
-  );
-};
+    <section className="card">
+      <h2 className="card__title">Upload a document</h2>
 
-export default FileUpload;
+      <label
+        className={`dropzone${dragging ? " dropzone--active" : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          pick(e.dataTransfer.files[0]);
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          hidden
+          onChange={(e) => pick(e.target.files[0])}
+        />
+        {file ? (
+          <span>
+            <strong>{file.name}</strong> · {formatSize(file.size)}
+          </span>
+        ) : (
+          <span>Click to choose a file, or drag &amp; drop it here</span>
+        )}
+      </label>
+
+      {file && (
+        <div className="upload__row">
+          <input
+            className="field"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="File name"
+          />
+          <button className="btn btn--primary" onClick={upload} disabled={busy}>
+            {busy ? "Saving…" : "Save"}
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
